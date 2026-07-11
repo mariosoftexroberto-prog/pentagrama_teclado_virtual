@@ -122,11 +122,11 @@
       }
       .draggable-label {
         position: absolute;
-        padding: 2px 6px;
+        padding: 1px 4px;
         background: rgba(255, 255, 255, 0.95);
         border: 1px dashed #666;
         border-radius: 6px;
-        font-size: 10pt;
+        font-size: 8.5pt;
         font-weight: 700;
         color: #111;
         cursor: move;
@@ -134,7 +134,7 @@
         white-space: nowrap;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         pointer-events: auto;
-        line-height: 1.1;
+        line-height: 1.05;
       }
       .selection-toolbar {
         position: absolute;
@@ -333,11 +333,11 @@
           max-width: none;
           padding: 2px 4px;
           gap: 2px;
-          font-size: 0.72rem;
+          font-size: 0.66rem;
         }
         .meta-field input {
           height: 18px;
-          font-size: 0.72rem;
+          font-size: 0.66rem;
           padding: 1px 3px;
         }
         .sheet .staff-box:first-child {
@@ -676,12 +676,12 @@
         tonalidadeLabel.style.display = tonalidadeValue ? "block" : "none";
         requestAnimationFrame(() => {
           if (titleLabel.style.display !== "none") {
-            centerLabel(titleLabel, 8);
+            centerLabel(titleLabel, 18);
           }
           if (tonalidadeLabel.style.display !== "none") {
             const tonalidadeTop = Math.max(
-              10,
-              (titleLabel.offsetTop || 8) + (titleLabel.offsetHeight || 16) + 2,
+              30,
+              (titleLabel.offsetTop || 18) + (titleLabel.offsetHeight || 16) + 6,
             );
             centerLabel(tonalidadeLabel, tonalidadeTop);
           }
