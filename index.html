@@ -44,31 +44,33 @@
       }
       .meta-controls {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         justify-content: center;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         flex-wrap: wrap;
       }
       .meta-field {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 3px;
         background: #fff;
         color: #222;
-        padding: 8px 12px;
+        padding: 4px 6px;
         border-radius: 6px;
-        font-size: 0.92rem;
-        min-width: 220px;
-        flex: 1 1 220px;
-        max-width: 280px;
+        font-size: 0.8rem;
+        min-width: 120px;
+        flex: 1 1 120px;
+        max-width: 180px;
       }
       .meta-field input {
         border: 1px solid #ccc;
         border-radius: 4px;
-        padding: 4px 8px;
+        padding: 2px 4px;
         width: 100%;
         text-align: center;
+        font-size: 0.8rem;
+        height: 24px;
       }
       button {
         padding: 8px 16px;
@@ -324,11 +326,16 @@
         .meta-controls {
           flex-direction: column;
           align-items: stretch;
-          gap: 8px;
+          gap: 6px;
         }
         .meta-field {
           min-width: 0;
           max-width: none;
+          padding: 3px 5px;
+        }
+        .meta-field input {
+          height: 22px;
+          font-size: 0.75rem;
         }
         .sheet {
           width: 100%;
@@ -398,14 +405,14 @@
           id="titleLabel"
           style="left: 16mm; top: 10mm"
         >
-          Título da Música
+          
         </div>
         <div
           class="draggable-label"
           id="tonalidadeLabel"
           style="left: 16mm; top: 20mm"
         >
-          Dó Maior
+          
         </div>
       </div>
       <!-- 6 staves inserted by JS -->
