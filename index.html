@@ -19,7 +19,7 @@
       }
       h1 {
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         font-size: 1.3rem;
       }
       .controls {
@@ -44,7 +44,7 @@
       }
       .meta-controls {
         display: flex;
-        gap: 150px;
+        gap: 12px;
         justify-content: center;
         margin-bottom: 12px;
         flex-wrap: wrap;
@@ -60,6 +60,8 @@
         border-radius: 6px;
         font-size: 0.92rem;
         min-width: 220px;
+        flex: 1 1 220px;
+        max-width: 280px;
       }
       .meta-field input {
         border: 1px solid #ccc;
@@ -72,7 +74,7 @@
         padding: 8px 16px;
         border: none;
         border-radius: 6px;
-        background: #e94560;
+        background: #cf5555;
         color: #fff;
         font-weight: bold;
         cursor: pointer;
@@ -81,6 +83,18 @@
       button:hover {
         background: #ff5570;
       }
+      
+      button#saveBtn{
+        background: #dde4eb;
+        color: #222;
+      }
+
+      button#newScoreBtn{
+        background: #5a9c5a;
+        color: #fff;  
+      }
+
+
       button.stop {
         background: #555;
       }
@@ -106,11 +120,11 @@
       }
       .draggable-label {
         position: absolute;
-        padding: 4px 8px;
+        padding: 2px 6px;
         background: rgba(255, 255, 255, 0.95);
         border: 1px dashed #666;
         border-radius: 6px;
-        font-size: 12pt;
+        font-size: 10pt;
         font-weight: 700;
         color: #111;
         cursor: move;
@@ -118,11 +132,13 @@
         white-space: nowrap;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         pointer-events: auto;
+        line-height: 1.1;
       }
       .selection-toolbar {
         position: absolute;
-        top: 4mm;
-        right: 4mm;
+        left: 50%;
+        bottom: 8px;
+        transform: translateX(-50%);
         display: flex;
         gap: 6px;
         z-index: 6;
@@ -187,7 +203,7 @@
         align-items: center;
         gap: 8px;
         background: linear-gradient(135deg, #ffedf2 0%, #ffe3ea 100%);
-        border: 1px solid #e94560;
+        border: 1px solid #c7e9e2;
         color: #8a1f3d;
         border-radius: 6px;
         padding: 8px 10px;
@@ -286,9 +302,50 @@
         }
       }
       @media (max-width: 800px) {
+        body {
+          padding: 8px;
+        }
+        h1 {
+          font-size: 1.05rem;
+          margin-bottom: 6px;
+        }
+        .controls {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+        .controls > * {
+          width: 100%;
+        }
+        .controls .speed-control {
+          grid-column: 1 / -1;
+          justify-content: center;
+        }
+        .meta-controls {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        .meta-field {
+          min-width: 0;
+          max-width: none;
+        }
         .sheet {
           width: 100%;
           padding: 8px;
+          min-height: auto;
+        }
+        .draggable-label {
+          font-size: 9pt;
+          padding: 1px 5px;
+        }
+        .selection-toolbar {
+          bottom: 4px;
+          padding: 5px;
+        }
+        .selection-toolbar button {
+          padding: 5px 8px;
+          font-size: 0.75rem;
         }
       }
     </style>
@@ -583,8 +640,8 @@
       const SAVED_SCORES_KEY = "piano-saved-scores-v1";
       const DEFAULT_TITLE = "Título da Música";
       const DEFAULT_TONALIDADE = "Dó Maior";
-      const DEFAULT_TITLE_POS = { left: "16mm", top: "10mm" };
-      const DEFAULT_TONALIDADE_POS = { left: "16mm", top: "20mm" };
+      const DEFAULT_TITLE_POS = { left: "16mm", top: "8mm" };
+      const DEFAULT_TONALIDADE_POS = { left: "16mm", top: "14mm" };
 
       function centerLabel(el, topOffset, leftOffset = 0) {
         const rect = sheet.getBoundingClientRect();
@@ -606,15 +663,14 @@
         tonalidadeLabel.style.display = tonalidadeValue ? "block" : "none";
         requestAnimationFrame(() => {
           if (titleLabel.style.display !== "none") {
-            centerLabel(titleLabel, 18);
+            centerLabel(titleLabel, 8);
           }
           if (tonalidadeLabel.style.display !== "none") {
-            const titleWidth = titleLabel.offsetWidth || 120;
-            const titleLeft = titleLabel.offsetLeft || 0;
-            const titleCenter = titleLeft + titleWidth / 2;
-            const tonalidadeLeft = Math.max(10, titleCenter + 90);
-            tonalidadeLabel.style.left = `${tonalidadeLeft}px`;
-            tonalidadeLabel.style.top = `${18}px`;
+            const tonalidadeTop = Math.max(
+              10,
+              (titleLabel.offsetTop || 8) + (titleLabel.offsetHeight || 16) + 2,
+            );
+            centerLabel(tonalidadeLabel, tonalidadeTop);
           }
         });
       }
