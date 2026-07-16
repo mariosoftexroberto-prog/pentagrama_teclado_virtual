@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Piano com Pentagrama (A4)</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        background: #2a2a3e;
+        color: #eee;
+        padding: 12px;
+        min-height: 100vh;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 8px;
+        font-size: 1.3rem;
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff;
+        color: #222;
+        padding: 6px 10px;
+        border-radius: 6px;
+      }
+      .speed-control button {
+        padding: 6px 10px;
+        min-width: 34px;
+      }
+      .meta-controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+      }
+      .meta-field {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        background: #fff;
+        color: #222;
+        padding: 4px 6px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        min-width: 120px;
+        flex: 1 1 120px;
+        max-width: 180px;
+      }
+      .meta-field input {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 2px 4px;
+        width: 100%;
+        text-align: center;
+        font-size: 0.8rem;
+        height: 24px;
+      }
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #cf5555;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      button:hover {
+        background: #ff5570;
+      }
+      
+      button#saveBtn{
+        background: #dde4eb;
+        color: #222;
+      }
+
+      button#newScoreBtn{
+        background: #5a9c5a;
+        color: #fff;  
+      }
+
+
+      button.stop {
+        background: #555;
+      }
+      /* A4 sheet */
+      .sheet {
+        background: #fff;
+        color: #000;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 16px;
+        padding: 8mm 8mm;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 4mm;
+        position: relative;
+      }
+      .overlay-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 3;
+      }
+      .draggable-label {
+        position: absolute;
+        padding: 1px 4px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px dashed #666;
+        border-radius: 6px;
+        font-size: 8.5pt;
+        font-weight: 700;
+        color: #111;
+        cursor: move;
+        user-select: none;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        pointer-events: auto;
+        line-height: 1.05;
+      }
+      .selection-toolbar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 6;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+      }
+      .selection-toolbar button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+      }
+      .sheet h2 {
+        font-size: 12pt;
+        text-align: center;
+        margin-bottom: 2mm;
+        color: #333;
+      }
+      .staff-box {
+        width: 100%;
+      }
+      .staff-box svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .piano {
+        display: flex;
+        justify-content: center;
+        position: relative;
+        user-select: none;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        max-width: 100%;
+        margin: 0 auto 14px;
+      }
+      .saved-list-panel {
+        max-width: 760px;
+        margin: 0 auto 14px;
+        background: #fff;
+        color: #222;
+        border-radius: 8px;
+        padding: 10px 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+      }
+      .saved-list-panel[hidden] {
+        display: none;
+      }
+      .saved-list-panel h3 {
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+      .saved-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .saved-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #ffedf2 0%, #ffe3ea 100%);
+        border: 1px solid #c7e9e2;
+        color: #8a1f3d;
+        border-radius: 6px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 700;
+        box-shadow: 0 2px 6px rgba(233, 69, 96, 0.2);
+      }
+      .saved-item:hover {
+        background: linear-gradient(135deg, #ffd6df 0%, #ffc2d0 100%);
+        transform: translateY(-1px);
+      }
+      .saved-delete-btn {
+        background: #e94560;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.8rem;
+        line-height: 1;
+      }
+      .piano-inner {
+        display: flex;
+        position: relative;
+      }
+      .key {
+        border: 1px solid #000;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 4px;
+        font-size: 0.65rem;
+        transition: background 0.08s;
+      }
+      .white {
+        width: 34px;
+        height: 150px;
+        background: #fff;
+        color: #333;
+        border-radius: 0 0 4px 4px;
+      }
+      .white:active,
+      .white.active {
+        background: #ffd6dd;
+      }
+      .black {
+        width: 22px;
+        height: 95px;
+        background: #111;
+        color: #fff;
+        border-radius: 0 0 3px 3px;
+        position: absolute;
+        top: 0;
+        z-index: 2;
+        font-size: 0.55rem;
+      }
+      .black:active,
+      .black.active {
+        background: #e94560;
+      }
+      @media print {
+        body {
+          background: #fff;
+          padding: 0;
+        }
+        h1,
+        .controls,
+        .piano {
+          display: none;
+        }
+        .selection-toolbar,
+        .saved-delete-btn {
+          display: none !important;
+        }
+        .draggable-label,
+        .cifra-text {
+          user-select: text;
+          -webkit-user-select: text;
+        }
+        .sheet svg text:not(.cifra-text),
+        .sheet svg line,
+        .sheet svg circle {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        .sheet {
+          box-shadow: none;
+          margin: 0;
+          width: 210mm;
+          min-height: 297mm;
+        }
+        @page {
+          size: A4;
+          margin: 0;
+        }
+      }
+      @media (max-width: 800px) {
+        body {
+          padding: 8px;
+        }
+        h1 {
+          font-size: 1.05rem;
+          margin-bottom: 6px;
+        }
+        .controls {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+        .controls > * {
+          width: 100%;
+        }
+        .controls .speed-control {
+          grid-column: 1 / -1;
+          justify-content: center;
+        }
+        /* .meta-controls {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 4px;
+        }
+        .meta-field {
+          min-width: 0;
+          max-width: none;
+          padding: 2px 4px; 
+          gap: 2px;
+          font-size: 0.66rem;
+        }
+ 
+        .meta-field input {
+          height: 18px;
+          font-size: 0.66rem;
+          padding: 1px 3px;
+        } */
+        .meta-controls{
+            display:flex;
+            gap:4px;
+            margin:4px 0;
+            align-items:center;
+        }
+
+        .meta-field{
+            display:flex;
+            flex-direction:column;
+            padding:1px 4px;
+            gap:1px;
+            font-size:11px;
+            line-height:1;
+        }
+
+        .meta-field span{
+            font-size:10px;
+            line-height:1;
+            margin:0;
+        }
+
+        .meta-field input{
+            height:22px;
+            padding:2px 4px;
+            font-size:11px;
+            margin:0;
+        }
+
+        .sheet .staff-box:first-child {
+          margin-top: 0;
+          margin-bottom: 300px;
+        }
+        .draggable-label {
+          font-size: 7.5pt;
+        }
+        .sheet {
+          width: 100%;
+          padding: 8px;
+          min-height: auto;
+        }
+        .draggable-label {
+          font-size: 9pt;
+          padding: 1px 5px;
+        }
+        .selection-toolbar {
+          bottom: 4px;
+          padding: 5px;
+        }
+        .selection-toolbar button {
+          padding: 5px 8px;
+          font-size: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎹 Piano Digital — Partitura cifra </h1>
+    <div class="controls">
+      <button id="playBtn">▶ Play</button>
+      <button id="clearBtn" class="stop">🗑 Limpar</button>
+      <div class="speed-control">
+        <button id="decreaseSpeedBtn" title="Diminuir velocidade">−</button>
+        <span id="speedLabel">1.0x</span>
+        <button id="increaseSpeedBtn" title="Aumentar velocidade">+</button>
+      </div>
+      <button id="saveBtn">💾 Salvar</button>
+      <button id="newScoreBtn">➕ Nova Partitura</button>
+      <button id="printBtn" class="stop">🖨 Imprimir</button>
+    </div>
+
+    <div class="meta-controls">
+      <label class="meta-field">
+        <span>Título</span>
+        <input id="titleInput" type="text" placeholder="Título da Música" />
+      </label>
+      <label class="meta-field">
+        <span>Tonalidade</span>
+        <input id="tonalidadeInput" type="text" placeholder="Dó Maior" />
+      </label>
+    </div>
+
+    <div class="controls">
+      <button id="showSavedBtn">📋 Mostrar listas</button>
+    </div>
+
+    <div id="savedListPanel" class="saved-list-panel" hidden>
+      <h3>Partituras salvas</h3>
+      <div id="savedList" class="saved-list"></div>
+    </div>
+
+    <div class="piano"><div class="piano-inner" id="piano"></div></div>
+
+    <div class="sheet" id="sheet">
+      <div id="selectionToolbar" class="selection-toolbar" hidden>
+        <button id="editSelectionBtn">Editar</button>
+        <button id="deleteSelectionBtn">Excluir</button>
+      </div>
+      <div class="overlay-layer">
+        <div
+          class="draggable-label"
+          id="titleLabel"
+          style="left: 16mm; top: 10mm"
+        >
+          
+        </div>
+        <div
+          class="draggable-label"
+          id="tonalidadeLabel"
+          style="left: 16mm; top: 20mm"
+        >
+          
+        </div>
+      </div>
+      <!-- 6 staves inserted by JS -->
+    </div>
+
+    <script>
+      /* ============ CONFIG ============ */
+      const STAVES = 6,
+        MEASURES_PER_STAFF = 3,
+        NOTES_PER_MEASURE = 4;
+      const NOTES_PER_STAFF = MEASURES_PER_STAFF * NOTES_PER_MEASURE; // 12
+      const TOTAL_SLOTS = STAVES * NOTES_PER_STAFF; // 72
+
+      const NOTES = [
+        "C",
+        "C#",
+        "Db",
+        "D",
+        "D#",
+        "Eb",
+        "E",
+        "Em",
+        "F",
+        "Fm",
+        "F#",
+        "F#m",
+        "G",
+        "Gm",
+        "G#",
+        "G#m",
+        "A",
+        "A#",
+        "B",
+      ];
+      const WHITE = ["C", "D", "E", "F", "G", "A", "B"];
+      const OCTAVES = [3, 4, 5];
+      const NOTE_SEMITONES = {
+        C: 0,
+        "C#": 1,
+        Db: 1,
+        D: 2,
+        "D#": 3,
+        Eb: 3,
+        E: 4,
+        F: 5,
+        "F#": 6,
+        Gb: 6,
+        G: 7,
+        "G#": 8,
+        Ab: 8,
+        A: 9,
+        "A#": 10,
+        Bb: 10,
+        B: 11,
+      };
+      function getFrequencyFromNote(note) {
+        const match = String(note).match(/^([A-Ga-g])([#b]?)(\d)$/);
+        if (!match) return null;
+        const letter = match[1].toUpperCase();
+        const accidental = match[2];
+        const octave = Number(match[3]);
+        const baseName =
+          accidental === "#"
+            ? `${letter}#`
+            : accidental === "b"
+              ? `${letter}b`
+              : letter;
+        const semitone = NOTE_SEMITONES[baseName] ?? NOTE_SEMITONES[letter];
+        if (semitone === undefined) return null;
+        const midi = (octave + 1) * 12 + semitone;
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+      const FREQ = {};
+      ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].forEach(
+        (name) => {
+          OCTAVES.concat([6]).forEach((oct) => {
+            FREQ[name + oct] = getFrequencyFromNote(name + oct);
+          });
+        },
+      );
+      const DIATONIC = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+      const stepIndex = (l, o) => (o - 4) * 7 + (DIATONIC[l] - DIATONIC.E); // E4=0
+      function formatNoteLabel(letter, acc = "") {
+        return `${letter}${acc}`;
+      }
+
+      /* ============ PIANO SOUND (Yamaha-like additive + ADSR) ============ */
+      let audioCtx, masterGain;
+      function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.7;
+        const lp = audioCtx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 6000;
+        masterGain.connect(lp).connect(audioCtx.destination);
+      }
+      function playSound(note) {
+        initAudio();
+        const f = getFrequencyFromNote(note) ?? FREQ[note];
+        if (!f) return;
+        const t = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const osc3 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        const detune = audioCtx.createGain();
+
+        osc1.type = "sine";
+        osc2.type = "triangle";
+        osc3.type = "sine";
+        osc1.frequency.setValueAtTime(f, t);
+        osc2.frequency.setValueAtTime(f * 2, t);
+        osc3.frequency.setValueAtTime(f * 3, t);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(4000, t);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.22, t + 0.006);
+        gain.gain.exponentialRampToValueAtTime(0.12, t + 0.16);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.25);
+
+        detune.gain.setValueAtTime(1, t);
+        osc1.connect(detune);
+        detune.connect(filter);
+        osc2.connect(filter);
+        osc3.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+
+        osc1.start(t);
+        osc2.start(t);
+        osc3.start(t);
+        osc1.stop(t + 1.3);
+        osc2.stop(t + 1.3);
+        osc3.stop(t + 1.3);
+      }
+
+      /* ============ PIANO KEYBOARD UI ============ */
+      const piano = document.getElementById("piano");
+      const whiteKeys = [];
+      OCTAVES.forEach((oct) =>
+        WHITE.forEach((n) => {
+          const el = document.createElement("div");
+          el.className = "key white";
+          el.dataset.note = n + oct;
+          el.textContent = n + oct;
+          el.addEventListener("mousedown", () => addNote(n + oct));
+          el.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            addNote(n + oct);
+          });
+          piano.appendChild(el);
+          whiteKeys.push(el);
+        }),
+      );
+      const blackPattern = [1, 1, 0, 1, 1, 1, 0];
+      requestAnimationFrame(() => {
+        const wW = whiteKeys[0].offsetWidth,
+          bW = wW * 0.65;
+        let idx = 0;
+        OCTAVES.forEach((oct) =>
+          WHITE.forEach((n, i) => {
+            if (blackPattern[i]) {
+              const bn = n + "#" + oct;
+              const el = document.createElement("div");
+              el.className = "key black";
+              el.dataset.note = bn;
+              el.style.left = idx * wW + wW - bW / 2 + "px";
+              el.style.width = bW + "px";
+              el.textContent = bn;
+              el.addEventListener("mousedown", (ev) => {
+                ev.stopPropagation();
+                addNote(bn);
+              });
+              el.addEventListener("touchstart", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                addNote(bn);
+              });
+              piano.appendChild(el);
+            }
+            idx++;
+          }),
+        );
+      });
+
+      /* ============ SEQUENCE + STAVES ============ */
+      const sequence = []; // {letter, acc, oct, full}
+      function addNote(full) {
+        if (sequence.length >= TOTAL_SLOTS) {
+          sequence.shift();
+        } // rolling
+        playSound(full);
+        const m = full.match(/^([A-G])(#?)(\d)$/);
+        if (!m) return;
+        sequence.push({ letter: m[1], acc: m[2], oct: +m[3], full });
+        drawAllStaves();
+        flashKey(full);
+        saveState();
+      }
+      function flashKey(full) {
+        const k = document.querySelector(`[data-note="${full}"]`);
+        if (k) {
+          k.classList.add("active");
+          setTimeout(() => k.classList.remove("active"), 180);
+        }
+      }
+
+      /* ============ RENDER STAVES ============ */
+      const svgNS = "http://www.w3.org/2000/svg";
+      const sheet = document.getElementById("sheet");
+      const titleInput = document.getElementById("titleInput");
+      const tonalidadeInput = document.getElementById("tonalidadeInput");
+      const titleLabel = document.getElementById("titleLabel");
+      const tonalidadeLabel = document.getElementById("tonalidadeLabel");
+      const selectionToolbar = document.getElementById("selectionToolbar");
+      const editSelectionBtn = document.getElementById("editSelectionBtn");
+      const deleteSelectionBtn = document.getElementById("deleteSelectionBtn");
+      const saveBtn = document.getElementById("saveBtn");
+      const newScoreBtn = document.getElementById("newScoreBtn");
+      const showSavedBtn = document.getElementById("showSavedBtn");
+      const savedListPanel = document.getElementById("savedListPanel");
+      const savedList = document.getElementById("savedList");
+      const staffBoxes = [];
+      let selectedItem = null;
+      const STORAGE_KEY = "piano-partitura-state-v1";
+      const SAVED_SCORES_KEY = "piano-saved-scores-v1";
+      const DEFAULT_TITLE = "Título da Música";
+      const DEFAULT_TONALIDADE = "Dó Maior";
+      const DEFAULT_TITLE_POS = { left: "16mm", top: "8mm" };
+      const DEFAULT_TONALIDADE_POS = { left: "16mm", top: "14mm" };
+
+      function centerLabel(el, topOffset, leftOffset = 0) {
+        const rect = sheet.getBoundingClientRect();
+        const leftPx = Math.max(
+          10,
+          rect.width / 2 - el.offsetWidth / 2 + leftOffset,
+        );
+        const topPx = Math.max(10, topOffset);
+        el.style.left = `${leftPx}px`;
+        el.style.top = `${topPx}px`;
+      }
+
+      function syncTextLabels() {
+        const titleValue = titleInput.value.trim();
+        const tonalidadeValue = tonalidadeInput.value.trim();
+        titleLabel.textContent = titleValue || DEFAULT_TITLE;
+        tonalidadeLabel.textContent = tonalidadeValue || "Tonalidade";
+        titleLabel.style.display = titleValue ? "block" : "none";
+        tonalidadeLabel.style.display = tonalidadeValue ? "block" : "none";
+        requestAnimationFrame(() => {
+          if (titleLabel.style.display !== "none") {
+            centerLabel(titleLabel, 18);
+          }
+          if (tonalidadeLabel.style.display !== "none") {
+            const tonalidadeTop = Math.max(
+              30,
+              (titleLabel.offsetTop || 18) + (titleLabel.offsetHeight || 16) + 6,
+            );
+            centerLabel(tonalidadeLabel, tonalidadeTop);
+          }
+        });
+      }
+      function saveState() {
+        const state = {
+          title: titleInput.value,
+          tonalidade: tonalidadeInput.value,
+          titlePos: { left: titleLabel.style.left, top: titleLabel.style.top },
+          tonalidadePos: {
+            left: tonalidadeLabel.style.left,
+            top: tonalidadeLabel.style.top,
+          },
+          sequence: sequence.map((note) => ({ ...note })),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return state;
+      }
+      function saveScoreToList() {
+        const state = saveState();
+        const list = JSON.parse(localStorage.getItem(SAVED_SCORES_KEY) || "[]");
+        const entry = {
+          id: Date.now().toString(),
+          title: state.title?.trim() || "Sem título",
+          tonalidade: state.tonalidade?.trim() || "Sem tonalidade",
+          state,
+        };
+        list.unshift(entry);
+        localStorage.setItem(
+          SAVED_SCORES_KEY,
+          JSON.stringify(list.slice(0, 20)),
+        );
+        renderSavedList();
+      }
+      function renderSavedList() {
+        const list = JSON.parse(localStorage.getItem(SAVED_SCORES_KEY) || "[]");
+        if (!list.length) {
+          savedList.innerHTML =
+            "<div class='saved-item'>Nenhuma partitura salva ainda.</div>";
+          return;
+        }
+        savedList.innerHTML = list
+          .map(
+            (item) => `
+              <div class="saved-item">
+                <button class="saved-item" data-id="${item.id}" style="all: unset; cursor: pointer;">
+                  ${item.title} — ${item.tonalidade}
+                </button>
+                <button class="saved-delete-btn" data-delete-id="${item.id}" title="Excluir partitura">×</button>
+              </div>
+            `,
+          )
+          .join("");
+      }
+      function loadScoreFromList(id) {
+        const list = JSON.parse(localStorage.getItem(SAVED_SCORES_KEY) || "[]");
+        const item = list.find((entry) => entry.id === id);
+        if (!item) return;
+        stopPlay();
+        sequence.length = 0;
+        applySavedState(item.state);
+        drawAllStaves();
+        saveState();
+        savedListPanel.hidden = true;
+      }
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+      function applySavedState(state) {
+        if (!state) return;
+        titleInput.value = state.title ?? DEFAULT_TITLE;
+        tonalidadeInput.value = state.tonalidade ?? DEFAULT_TONALIDADE;
+        titleLabel.style.left = state.titlePos?.left || DEFAULT_TITLE_POS.left;
+        titleLabel.style.top = state.titlePos?.top || DEFAULT_TITLE_POS.top;
+        tonalidadeLabel.style.left =
+          state.tonalidadePos?.left || DEFAULT_TONALIDADE_POS.left;
+        tonalidadeLabel.style.top =
+          state.tonalidadePos?.top || DEFAULT_TONALIDADE_POS.top;
+        sequence.splice(
+          0,
+          sequence.length,
+          ...(state.sequence || []).map((note) => ({ ...note })),
+        );
+        syncTextLabels();
+      }
+      function createNewScore() {
+        stopPlay();
+        sequence.length = 0;
+        titleInput.value = DEFAULT_TITLE;
+        tonalidadeInput.value = DEFAULT_TONALIDADE;
+        titleLabel.style.left = DEFAULT_TITLE_POS.left;
+        titleLabel.style.top = DEFAULT_TITLE_POS.top;
+        tonalidadeLabel.style.left = DEFAULT_TONALIDADE_POS.left;
+        tonalidadeLabel.style.top = DEFAULT_TONALIDADE_POS.top;
+        clearSelection();
+        syncTextLabels();
+        saveState();
+        drawAllStaves();
+      }
+      titleInput.addEventListener("input", () => {
+        syncTextLabels();
+        saveState();
+      });
+      tonalidadeInput.addEventListener("input", () => {
+        syncTextLabels();
+        saveState();
+      });
+      saveBtn.addEventListener("click", () => {
+        saveScoreToList();
+        alert("Partitura salva localmente.");
+      });
+      showSavedBtn.addEventListener("click", () => {
+        renderSavedList();
+        savedListPanel.hidden = !savedListPanel.hidden;
+      });
+      savedList.addEventListener("click", (ev) => {
+        const deleteBtn = ev.target.closest("[data-delete-id]");
+        if (deleteBtn) {
+          const id = deleteBtn.getAttribute("data-delete-id");
+          const list = JSON.parse(
+            localStorage.getItem(SAVED_SCORES_KEY) || "[]",
+          );
+          const filtered = list.filter((item) => item.id !== id);
+          localStorage.setItem(SAVED_SCORES_KEY, JSON.stringify(filtered));
+          renderSavedList();
+          return;
+        }
+        const button = ev.target.closest("[data-id]");
+        if (!button) return;
+        loadScoreFromList(button.getAttribute("data-id"));
+      });
+      newScoreBtn.addEventListener("click", createNewScore);
+      applySavedState(loadState());
+      renderSavedList();
+      syncTextLabels();
+
+      function showSelectionToolbar() {
+        selectionToolbar.hidden = false;
+      }
+      function hideSelectionToolbar() {
+        selectionToolbar.hidden = true;
+      }
+      function clearSelection() {
+        selectedItem = null;
+        hideSelectionToolbar();
+        drawAllStaves();
+      }
+      function selectLabel(kind) {
+        selectedItem = { type: "label", kind };
+        showSelectionToolbar();
+      }
+      function selectNote(index) {
+        selectedItem = { type: "note", index };
+        showSelectionToolbar();
+      }
+
+      let noteDragState = null;
+
+      function startNoteDrag(globalIdx, clientX) {
+        noteDragState = {
+          fromIndex: globalIdx,
+          startX: clientX,
+          staffIndex: Math.floor(globalIdx / NOTES_PER_STAFF),
+        };
+        document.body.style.cursor = "grabbing";
+      }
+
+      function moveNoteDrag(clientX) {
+        if (!noteDragState) return;
+        const svgEl = staffBoxes[noteDragState.staffIndex];
+        if (!svgEl) return;
+        const rect = svgEl.getBoundingClientRect();
+        const x = ((clientX - rect.left) / rect.width) * 1000;
+        const staffStart = noteDragState.staffIndex * NOTES_PER_STAFF;
+        const usable = 1000 - NOTE_START - 30;
+        const noteSpacing = usable / NOTES_PER_STAFF;
+        const slot = Math.max(
+          0,
+          Math.min(
+            NOTES_PER_STAFF - 1,
+            Math.round((x - NOTE_START) / noteSpacing),
+          ),
+        );
+        const targetIndex = staffStart + slot;
+        const fromIndex = noteDragState.fromIndex;
+        if (targetIndex === fromIndex) return;
+        const noteToMove = sequence[fromIndex];
+        if (!noteToMove) return;
+        const adjustedTargetIndex =
+          targetIndex > fromIndex ? targetIndex - 1 : targetIndex;
+        const clampedTargetIndex = Math.max(
+          0,
+          Math.min(TOTAL_SLOTS - 1, adjustedTargetIndex),
+        );
+        sequence.splice(fromIndex, 1);
+        sequence.splice(clampedTargetIndex, 0, noteToMove);
+        if (sequence.length > TOTAL_SLOTS) {
+          sequence.length = TOTAL_SLOTS;
+        }
+        selectedItem = { type: "note", index: clampedTargetIndex };
+        drawAllStaves();
+        noteDragState.fromIndex = clampedTargetIndex;
+      }
+
+      function stopNoteDrag() {
+        if (!noteDragState) return;
+        noteDragState = null;
+        document.body.style.cursor = "";
+        saveState();
+      }
+
+      function makeDraggable(el) {
+        let dragging = false;
+        let startX = 0;
+        let startY = 0;
+        let originLeft = 0;
+        let originTop = 0;
+
+        const startDrag = (clientX, clientY) => {
+          dragging = true;
+          startX = clientX;
+          startY = clientY;
+          originLeft = parseFloat(el.style.left || "0");
+          originTop = parseFloat(el.style.top || "0");
+          document.body.style.userSelect = "none";
+        };
+
+        const moveDrag = (clientX, clientY) => {
+          if (!dragging) return;
+          const rect = sheet.getBoundingClientRect();
+          let nextLeft = originLeft + clientX - startX;
+          let nextTop = originTop + clientY - startY;
+          nextLeft = Math.max(
+            0,
+            Math.min(rect.width - el.offsetWidth, nextLeft),
+          );
+          nextTop = Math.max(
+            0,
+            Math.min(rect.height - el.offsetHeight, nextTop),
+          );
+          el.style.left = `${nextLeft}px`;
+          el.style.top = `${nextTop}px`;
+        };
+
+        const stopDrag = () => {
+          dragging = false;
+          document.body.style.userSelect = "";
+          saveState();
+        };
+
+        el.addEventListener("mousedown", (ev) => {
+          ev.preventDefault();
+          selectLabel(el.id === "titleLabel" ? "title" : "tonalidade");
+          startDrag(ev.clientX, ev.clientY);
+        });
+        el.addEventListener(
+          "touchstart",
+          (ev) => {
+            if (ev.touches.length !== 1) return;
+            ev.preventDefault();
+            selectLabel(el.id === "titleLabel" ? "title" : "tonalidade");
+            const t = ev.touches[0];
+            startDrag(t.clientX, t.clientY);
+          },
+          { passive: false },
+        );
+
+        window.addEventListener("mousemove", (ev) =>
+          moveDrag(ev.clientX, ev.clientY),
+        );
+        window.addEventListener("mouseup", stopDrag);
+        window.addEventListener(
+          "touchmove",
+          (ev) => {
+            if (!dragging || ev.touches.length !== 1) return;
+            const t = ev.touches[0];
+            moveDrag(t.clientX, t.clientY);
+          },
+          { passive: false },
+        );
+        window.addEventListener("touchend", stopDrag);
+      }
+
+      makeDraggable(titleLabel);
+      makeDraggable(tonalidadeLabel);
+
+      editSelectionBtn.addEventListener("click", () => {
+        if (!selectedItem) return;
+        if (selectedItem.type === "label") {
+          const currentValue =
+            selectedItem.kind === "title"
+              ? titleInput.value
+              : tonalidadeInput.value;
+          const newValue = prompt(
+            selectedItem.kind === "title"
+              ? "Editar título"
+              : "Editar tonalidade",
+            currentValue,
+          );
+          if (newValue !== null) {
+            if (selectedItem.kind === "title") {
+              titleInput.value = newValue;
+            } else {
+              tonalidadeInput.value = newValue;
+            }
+            syncTextLabels();
+          }
+        } else {
+          const note = sequence[selectedItem.index];
+          if (!note) return;
+          const newValue = prompt("Editar nota", note.full);
+          if (newValue !== null) {
+            const m = String(newValue)
+              .trim()
+              .match(/^([A-G])(#?)(\d)$/);
+            if (!m) {
+              alert("Use um valor como C4, D#5 ou F#3.");
+              return;
+            }
+            sequence[selectedItem.index] = {
+              letter: m[1],
+              acc: m[2],
+              oct: +m[3],
+              full: m[1] + m[2] + m[3],
+            };
+            drawAllStaves();
+            saveState();
+          }
+        }
+      });
+
+      deleteSelectionBtn.addEventListener("click", () => {
+        if (!selectedItem) return;
+        if (selectedItem.type === "label") {
+          if (selectedItem.kind === "title") {
+            titleInput.value = "";
+          } else {
+            tonalidadeInput.value = "";
+          }
+          syncTextLabels();
+        } else {
+          sequence.splice(selectedItem.index, 1);
+          drawAllStaves();
+        }
+        saveState();
+        clearSelection();
+      });
+
+      sheet.addEventListener("click", (ev) => {
+        if (ev.target.closest(".selection-toolbar")) return;
+        if (ev.target.closest(".draggable-label")) return;
+        clearSelection();
+      });
+
+      for (let s = 0; s < STAVES; s++) {
+        const box = document.createElement("div");
+        box.className = "staff-box";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 1000 180");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        box.appendChild(svg);
+        sheet.appendChild(box);
+        staffBoxes.push(svg);
+      }
+
+      // Increased line gap for readability
+      const LINE_GAP = 14,
+        STAFF_TOP = 50,
+        LEFT = 70,
+        NOTE_START = 120;
+      let highlightIdx = -1;
+
+      function drawStaff(svg, staffIdx) {
+        svg.innerHTML = "";
+        const W = 1000;
+        const usable = W - NOTE_START - 30;
+        const noteSpacing = usable / NOTES_PER_STAFF;
+        // 5 lines
+        for (let i = 0; i < 5; i++) {
+          const y = STAFF_TOP + i * LINE_GAP;
+          const l = document.createElementNS(svgNS, "line");
+          l.setAttribute("x1", LEFT);
+          l.setAttribute("x2", W - 20);
+          l.setAttribute("y1", y);
+          l.setAttribute("y2", y);
+          l.setAttribute("stroke", "#000");
+          l.setAttribute("stroke-width", "1");
+          svg.appendChild(l);
+        }
+        // Treble clef
+        const clef = document.createElementNS(svgNS, "text");
+        clef.setAttribute("x", LEFT + 5);
+        clef.setAttribute("y", STAFF_TOP + 4 * LINE_GAP + 8);
+        clef.setAttribute("font-size", "72");
+        clef.setAttribute("font-family", "serif");
+        clef.textContent = "𝄞";
+        svg.appendChild(clef);
+        // Staff number
+        const num = document.createElementNS(svgNS, "text");
+        num.setAttribute("x", 5);
+        num.setAttribute("y", STAFF_TOP - 8);
+        num.setAttribute("font-size", "12");
+        num.setAttribute("fill", "#888");
+        num.textContent = `${staffIdx + 1}`;
+        svg.appendChild(num);
+        // Bar lines
+        for (let m = 1; m <= MEASURES_PER_STAFF; m++) {
+          const x =
+            NOTE_START + m * NOTES_PER_MEASURE * noteSpacing - noteSpacing / 2;
+          const bl = document.createElementNS(svgNS, "line");
+          bl.setAttribute("x1", x);
+          bl.setAttribute("x2", x);
+          bl.setAttribute("y1", STAFF_TOP);
+          bl.setAttribute("y2", STAFF_TOP + 4 * LINE_GAP);
+          bl.setAttribute("stroke", "#000");
+          bl.setAttribute(
+            "stroke-width",
+            m === MEASURES_PER_STAFF ? "2.5" : "1",
+          );
+          svg.appendChild(bl);
+        }
+        // Notes in this staff
+        const start = staffIdx * NOTES_PER_STAFF;
+        for (let j = 0; j < NOTES_PER_STAFF; j++) {
+          const globalIdx = start + j;
+          const n = sequence[globalIdx];
+          if (!n) continue;
+          const x = NOTE_START + j * noteSpacing + noteSpacing / 2;
+          const step = stepIndex(n.letter, n.oct);
+          const y = STAFF_TOP + 4 * LINE_GAP - step * (LINE_GAP / 2);
+          // ledger lines
+          if (step < 0) {
+            for (let s = -2; s >= step; s -= 2) {
+              const ly = STAFF_TOP + 4 * LINE_GAP - s * (LINE_GAP / 2);
+              const ll = document.createElementNS(svgNS, "line");
+              ll.setAttribute("x1", x - 14);
+              ll.setAttribute("x2", x + 14);
+              ll.setAttribute("y1", ly);
+              ll.setAttribute("y2", ly);
+              ll.setAttribute("stroke", "#000");
+              svg.appendChild(ll);
+            }
+          } else if (step > 8) {
+            for (let s = 10; s <= step; s += 2) {
+              const ly = STAFF_TOP + 4 * LINE_GAP - s * (LINE_GAP / 2);
+              const ll = document.createElementNS(svgNS, "line");
+              ll.setAttribute("x1", x - 14);
+              ll.setAttribute("x2", x + 14);
+              ll.setAttribute("y1", ly);
+              ll.setAttribute("y2", ly);
+              ll.setAttribute("stroke", "#000");
+              svg.appendChild(ll);
+            }
+          }
+          const group = document.createElementNS(svgNS, "g");
+          group.style.cursor = "pointer";
+          group.addEventListener("mousedown", (ev) => {
+            if (ev.button !== 0) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            selectNote(globalIdx);
+            startNoteDrag(globalIdx, ev.clientX);
+          });
+          group.addEventListener(
+            "touchstart",
+            (ev) => {
+              if (ev.touches.length !== 1) return;
+              ev.preventDefault();
+              ev.stopPropagation();
+              selectNote(globalIdx);
+              startNoteDrag(globalIdx, ev.touches[0].clientX);
+            },
+            { passive: false },
+          );
+          group.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            selectNote(globalIdx);
+            drawAllStaves();
+          });
+
+          // CIFRA (letter) instead of notehead — big
+          const cifra = document.createElementNS(svgNS, "text");
+          cifra.setAttribute("x", x);
+          cifra.setAttribute("y", y + 9);
+          cifra.setAttribute("text-anchor", "middle");
+          cifra.setAttribute("font-size", "26");
+          cifra.setAttribute("class", "cifra-text");
+          cifra.setAttribute("font-weight", "bold");
+          cifra.setAttribute("font-family", "Georgia,serif");
+          cifra.setAttribute(
+            "fill",
+            globalIdx === highlightIdx ? "#e94560" : "#111",
+          );
+          cifra.textContent = formatNoteLabel(n.letter, n.acc);
+          // background circle for readability
+          const bg = document.createElementNS(svgNS, "circle");
+          bg.setAttribute("cx", x);
+          bg.setAttribute("cy", y);
+          bg.setAttribute("r", 14);
+          bg.setAttribute("fill", "#fff");
+          bg.setAttribute(
+            "stroke",
+            globalIdx === highlightIdx ? "#e94560" : "#333",
+          );
+          bg.setAttribute("stroke-width", "1.5");
+          if (
+            selectedItem?.type === "note" &&
+            selectedItem.index === globalIdx
+          ) {
+            bg.setAttribute("fill", "#ffe9ed");
+            bg.setAttribute("stroke", "#e94560");
+            bg.setAttribute("stroke-width", "2.4");
+            cifra.setAttribute("fill", "#e94560");
+          }
+          group.appendChild(bg);
+          group.appendChild(cifra);
+          // octave subscript
+          const oct = document.createElementNS(svgNS, "text");
+          oct.setAttribute("x", x + 12);
+          oct.setAttribute("y", y + 16);
+          oct.setAttribute("font-size", "10");
+          oct.setAttribute("fill", "#666");
+          oct.textContent = n.oct;
+          group.appendChild(oct);
+          svg.appendChild(group);
+        }
+      }
+      function drawAllStaves() {
+        staffBoxes.forEach((s, i) => drawStaff(s, i));
+      }
+      drawAllStaves();
+
+      /* ============ PLAYBACK ============ */
+      let playing = false,
+        playTimer = null;
+      let playbackSpeed = 1;
+      const playBtn = document.getElementById("playBtn");
+      const speedLabel = document.getElementById("speedLabel");
+      const decreaseSpeedBtn = document.getElementById("decreaseSpeedBtn");
+      const increaseSpeedBtn = document.getElementById("increaseSpeedBtn");
+
+      function updateSpeedLabel() {
+        speedLabel.textContent = `${playbackSpeed.toFixed(1)}x`;
+      }
+      function changePlaybackSpeed(delta) {
+        playbackSpeed = Math.max(0.5, Math.min(2.5, playbackSpeed + delta));
+        updateSpeedLabel();
+      }
+      decreaseSpeedBtn.addEventListener("click", () =>
+        changePlaybackSpeed(-0.1),
+      );
+      increaseSpeedBtn.addEventListener("click", () =>
+        changePlaybackSpeed(0.1),
+      );
+      updateSpeedLabel();
+      playBtn.addEventListener("click", () => {
+        if (playing) {
+          stopPlay();
+          return;
+        }
+        if (sequence.length === 0) return;
+        initAudio();
+        playing = true;
+        playBtn.textContent = "⏸ Stop";
+        playBtn.classList.add("stop");
+        let i = 0;
+        const tick = () => {
+          if (!playing) return;
+          highlightIdx = i % sequence.length;
+          const n = sequence[highlightIdx];
+          playSound(n.full);
+          flashKey(n.full);
+          drawAllStaves();
+          i++;
+          playTimer = setTimeout(tick, 500 / playbackSpeed);
+        };
+        tick();
+      });
+      function stopPlay() {
+        playing = false;
+        clearTimeout(playTimer);
+        highlightIdx = -1;
+        playBtn.textContent = "▶ Play";
+        playBtn.classList.remove("stop");
+        drawAllStaves();
+      }
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        stopPlay();
+        sequence.length = 0;
+        saveState();
+        drawAllStaves();
+      });
+      document
+        .getElementById("printBtn")
+        .addEventListener("click", () => window.print());
+
+      window.addEventListener("mousemove", (ev) => {
+        if (!noteDragState) return;
+        moveNoteDrag(ev.clientX);
+      });
+      window.addEventListener("mouseup", stopNoteDrag);
+      window.addEventListener(
+        "touchmove",
+        (ev) => {
+          if (!noteDragState || ev.touches.length !== 1) return;
+          moveNoteDrag(ev.touches[0].clientX);
+        },
+        { passive: false },
+      );
+      window.addEventListener("touchend", stopNoteDrag);
+
+      /* Keyboard */
+      const KEYMAP = {
+        z: "C4",
+        s: "C#4",
+        x: "D4",
+        d: "D#4",
+        c: "E4",
+        v: "F4",
+        g: "F#4",
+        b: "G4",
+        h: "G#4",
+        n: "A4",
+        j: "A#4",
+        m: "B4",
+        q: "C5",
+        2: "C#5",
+        w: "D5",
+        3: "D#5",
+        e: "E5",
+        r: "F5",
+        5: "F#5",
+        t: "G5",
+        6: "G#5",
+        y: "A5",
+        7: "A#5",
+        u: "B5",
+      };
+      document.addEventListener("keydown", (ev) => {
+        const target = ev.target;
+        const isTypingTarget =
+          target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT" ||
+            target.isContentEditable);
+
+        if (isTypingTarget) return;
+
+        const n = KEYMAP[ev.key.toLowerCase()];
+        if (n) {
+          ev.preventDefault();
+          addNote(n);
+        }
+      });
+    </script>
+  </body>
+</html>

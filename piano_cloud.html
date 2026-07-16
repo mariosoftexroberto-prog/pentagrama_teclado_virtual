@@ -906,17 +906,12 @@
       };
       document.addEventListener("keydown", (ev) => {
         const n = KEYMAP[ev.key.toLowerCase()];
-        const ae = document.activeElement;
-        const isTypingField =
-          ae &&
-          (ae.tagName === "INPUT" ||
-            ae.tagName === "TEXTAREA" ||
-            ae.isContentEditable ||
-            (ae.classList &&
-              (ae.classList.contains("chord-label") ||
-                ae.classList.contains("note-label"))));
-        const modalOpen = !!document.getElementById("activeModal");
-        if (isTypingField || modalOpen) return;
+        if (
+          document.activeElement &&
+          document.activeElement.classList &&
+          document.activeElement.classList.contains("chord-label")
+        )
+          return;
         if (n) {
           ev.preventDefault();
           addNote(n);

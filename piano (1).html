@@ -106,8 +106,6 @@
       @media print {
         .chord-label {
           border-color: transparent !important;
-          background: #fff !important;
-          padding: 1px 3px;
         }
         .chord-label .del {
           display: none !important;
@@ -193,14 +191,8 @@
       @media print {
         .note-label {
           border-color: transparent !important;
-          background: #fff !important;
+          background: transparent !important;
           box-shadow: none !important;
-          min-width: 24px;
-          height: 24px;
-          font-size: 10pt;
-        }
-        .note-label .oct {
-          font-size: 6.5pt;
         }
         .note-label .del {
           display: none !important;
@@ -256,12 +248,9 @@
         background: #e94560;
       }
       @media print {
-        html,
         body {
           background: #fff;
           padding: 0;
-          margin: 0;
-          width: 210mm;
         }
         h1,
         .controls,
@@ -271,23 +260,12 @@
         .sheet {
           box-shadow: none;
           margin: 0;
-          width: 100%;
-          min-height: 0;
-          padding: 8mm 10mm;
-          gap: 9mm;
-        }
-        .staff-box {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        .chord-label,
-        .note-label {
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
+          width: 210mm;
+          min-height: 297mm;
         }
         @page {
           size: A4;
-          margin: 10mm;
+          margin: 0;
         }
       }
       @media (max-width: 800px) {
@@ -296,129 +274,15 @@
           padding: 8px;
         }
       }
-
-      /* ===== Modal ===== */
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        padding: 16px;
-      }
-      .modal-box {
-        background: #fff;
-        color: #222;
-        border-radius: 10px;
-        width: 100%;
-        max-width: 420px;
-        max-height: 80vh;
-        overflow-y: auto;
-        padding: 18px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      }
-      .modal-box h3 {
-        margin-bottom: 12px;
-        font-size: 1.1rem;
-        color: #2a2a3e;
-      }
-      .modal-box input[type="text"] {
-        width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 0.95rem;
-        margin-bottom: 12px;
-      }
-      .modal-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        margin-top: 10px;
-      }
-      .modal-actions button {
-        font-size: 0.85rem;
-        padding: 7px 14px;
-      }
-      .modal-box .cancel-btn {
-        background: #999;
-      }
-      .modal-box .cancel-btn:hover {
-        background: #aaa;
-      }
-      .score-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .score-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        border: 1px solid #e2e2e2;
-        border-radius: 8px;
-        padding: 8px 10px;
-      }
-      .score-list .score-info {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .score-list .score-name {
-        font-weight: bold;
-        font-size: 0.95rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .score-list .score-date {
-        font-size: 0.75rem;
-        color: #777;
-      }
-      .score-list .score-actions {
-        display: flex;
-        gap: 6px;
-        flex-shrink: 0;
-      }
-      .score-list button {
-        padding: 5px 10px;
-        font-size: 0.8rem;
-      }
-      .score-list .del-score {
-        background: #999;
-      }
-      .score-list .del-score:hover {
-        background: #b33;
-      }
-      .empty-list {
-        color: #888;
-        text-align: center;
-        padding: 10px 0;
-      }
-      @media print {
-        .modal-overlay {
-          display: none !important;
-        }
-      }
     </style>
   </head>
   <body>
     <h1>🎹 Piano Digital — Partitura A4 (Cifras)</h1>
     <div class="controls">
-      <button id="newScoreBtn">🆕 Nova Partitura</button>
-      <button id="saveScoreBtn">💾 Salvar Partitura</button>
-      <button id="listScoresBtn">📂 Partituras Salvas</button>
       <button id="playBtn">▶ Play</button>
       <button id="clearBtn" class="stop">🗑 Limpar</button>
       <button id="addChordBtn">➕ Cifra</button>
       <button id="printBtn" class="stop">🖨 Imprimir</button>
-    </div>
-    <div id="scoreNameBar" style="text-align:center;margin-bottom:10px;color:#bbb;font-size:0.85rem;">
-      Partitura sem nome
     </div>
     <div class="piano"><div class="piano-inner" id="piano"></div></div>
 
@@ -607,7 +471,7 @@
         const box = document.createElement("div");
         box.className = "staff-box";
         const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("viewBox", "0 0 1000 220");
+        svg.setAttribute("viewBox", "0 0 1000 180");
         svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
         box.appendChild(svg);
         sheet.appendChild(box);
@@ -615,8 +479,8 @@
       }
 
       // Increased line gap for readability
-      const LINE_GAP = 20,
-        STAFF_TOP = 60,
+      const LINE_GAP = 14,
+        STAFF_TOP = 50,
         LEFT = 70,
         NOTE_START = 120;
       let highlightIdx = -1;
@@ -722,7 +586,7 @@
         const el = document.createElement("div");
         el.className = "note-label" + (idx === highlightIdx ? " playing" : "");
         el.style.left = `calc(${baseX / 10}% + ${n.dx || 0}px)`;
-        el.style.top = `calc(${baseY / 2.2}% + ${n.dy || 0}px)`;
+        el.style.top = `calc(${baseY / 1.8}% + ${n.dy || 0}px)`;
         // conteúdo: texto + oitava
         const txt = document.createElement("span");
         txt.className = "txt";
@@ -814,7 +678,7 @@
           n.dx = ndx;
           n.dy = ndy;
           el.style.left = `calc(${baseX / 10}% + ${ndx}px)`;
-          el.style.top = `calc(${baseY / 2.2}% + ${ndy}px)`;
+          el.style.top = `calc(${baseY / 1.8}% + ${ndy}px)`;
         };
         document.addEventListener("mousemove", (ev) =>
           onMove(ev.clientX, ev.clientY),
@@ -906,17 +770,12 @@
       };
       document.addEventListener("keydown", (ev) => {
         const n = KEYMAP[ev.key.toLowerCase()];
-        const ae = document.activeElement;
-        const isTypingField =
-          ae &&
-          (ae.tagName === "INPUT" ||
-            ae.tagName === "TEXTAREA" ||
-            ae.isContentEditable ||
-            (ae.classList &&
-              (ae.classList.contains("chord-label") ||
-                ae.classList.contains("note-label"))));
-        const modalOpen = !!document.getElementById("activeModal");
-        if (isTypingField || modalOpen) return;
+        if (
+          document.activeElement &&
+          document.activeElement.classList &&
+          document.activeElement.classList.contains("chord-label")
+        )
+          return;
         if (n) {
           ev.preventDefault();
           addNote(n);
@@ -925,7 +784,6 @@
 
       /* ============ CHORD LABELS (draggable, editable) ============ */
       /* Suporta cifras livres: C, C#, Db, D°, E+, F-, G7, A/C#, E4, Bbmaj7, etc. */
-      const chordLabels = []; // {text, x, y, el} — estado rastreável p/ salvar/carregar
       function createChordLabel(text, x, y) {
         const el = document.createElement("div");
         el.className = "chord-label";
@@ -934,10 +792,6 @@
         el.textContent = text || "C";
         el.style.left = (x || 40) + "px";
         el.style.top = (y || 40) + "px";
-
-        const record = { text: text || "C", x: x || 40, y: y || 40, el };
-        chordLabels.push(record);
-
         const del = document.createElement("span");
         del.className = "del";
         del.textContent = "×";
@@ -945,8 +799,6 @@
           ev.stopPropagation();
           ev.preventDefault();
           el.remove();
-          const i = chordLabels.indexOf(record);
-          if (i > -1) chordLabels.splice(i, 1);
         });
         el.appendChild(del);
 
@@ -965,7 +817,6 @@
             el.classList.remove("editing");
             el.contentEditable = "false";
             if (!el.textContent.trim()) el.textContent = "?";
-            record.text = el.textContent.trim();
             el.appendChild(del);
           }
         });
@@ -1009,18 +860,14 @@
         );
         document.addEventListener("mousemove", (ev) => {
           if (!dragging) return;
-          record.x = ox + ev.clientX - sx;
-          record.y = oy + ev.clientY - sy;
-          el.style.left = record.x + "px";
-          el.style.top = record.y + "px";
+          el.style.left = ox + ev.clientX - sx + "px";
+          el.style.top = oy + ev.clientY - sy + "px";
         });
         document.addEventListener("touchmove", (ev) => {
           if (!dragging) return;
           const t = ev.touches[0];
-          record.x = ox + t.clientX - sx;
-          record.y = oy + t.clientY - sy;
-          el.style.left = record.x + "px";
-          el.style.top = record.y + "px";
+          el.style.left = ox + t.clientX - sx + "px";
+          el.style.top = oy + t.clientY - sy + "px";
         });
         document.addEventListener("mouseup", () => (dragging = false));
         document.addEventListener("touchend", () => (dragging = false));
@@ -1035,212 +882,6 @@
         const ev = new MouseEvent("dblclick", { bubbles: true });
         el.dispatchEvent(ev);
       });
-
-      /* ============ MODAL HELPER ============ */
-      function openModal(innerHTML) {
-        closeModal();
-        const overlay = document.createElement("div");
-        overlay.className = "modal-overlay";
-        overlay.id = "activeModal";
-        overlay.innerHTML = `<div class="modal-box">${innerHTML}</div>`;
-        overlay.addEventListener("mousedown", (ev) => {
-          if (ev.target === overlay) closeModal();
-        });
-        document.body.appendChild(overlay);
-        return overlay;
-      }
-      function closeModal() {
-        const m = document.getElementById("activeModal");
-        if (m) m.remove();
-      }
-
-      /* ============ SALVAR / CARREGAR / LISTAR PARTITURAS ============ */
-      const STORAGE_KEY = "piano_partituras_v1";
-      let currentScoreName = null;
-
-      function loadAllScores() {
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-        } catch (e) {
-          return {};
-        }
-      }
-      function saveAllScores(data) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          return true;
-        } catch (e) {
-          alert("Não foi possível salvar (armazenamento do navegador indisponível).");
-          return false;
-        }
-      }
-      function updateScoreNameBar() {
-        const bar = document.getElementById("scoreNameBar");
-        bar.textContent = currentScoreName
-          ? `Partitura: ${currentScoreName}`
-          : "Partitura sem nome";
-      }
-
-      function collectScoreData(name) {
-        return {
-          name,
-          savedAt: Date.now(),
-          sequence: sequence.map((n) => ({
-            letter: n.letter,
-            acc: n.acc,
-            oct: n.oct,
-            full: n.full,
-            text: n.text,
-            dx: n.dx || 0,
-            dy: n.dy || 0,
-          })),
-          chords: chordLabels.map((c) => ({ text: c.text, x: c.x, y: c.y })),
-        };
-      }
-
-      function applyScoreData(data) {
-        stopPlay();
-        sequence.length = 0;
-        (data.sequence || []).forEach((n) => sequence.push({ ...n }));
-        chordLabels.slice().forEach((c) => c.el.remove());
-        chordLabels.length = 0;
-        (data.chords || []).forEach((c) => createChordLabel(c.text, c.x, c.y));
-        drawAllStaves();
-        currentScoreName = data.name || null;
-        updateScoreNameBar();
-      }
-
-      function doSaveScore(name) {
-        const trimmed = (name || "").trim();
-        if (!trimmed) return;
-        const all = loadAllScores();
-        all[trimmed] = collectScoreData(trimmed);
-        if (saveAllScores(all)) {
-          currentScoreName = trimmed;
-          updateScoreNameBar();
-          closeModal();
-        }
-      }
-
-      document.getElementById("saveScoreBtn").addEventListener("click", () => {
-        const overlay = openModal(`
-          <h3>💾 Salvar Partitura</h3>
-          <input type="text" id="scoreNameInput" placeholder="Nome da partitura" maxlength="60" />
-          <div id="scoreSaveWarning" style="color:#b33;font-size:0.8rem;margin:-6px 0 10px;display:none;">
-            Já existe uma partitura com esse nome. Salvar novamente irá substituí-la.
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" id="cancelSave">Cancelar</button>
-            <button type="button" id="confirmSave">Salvar</button>
-          </div>
-        `);
-        const input = overlay.querySelector("#scoreNameInput");
-        const warning = overlay.querySelector("#scoreSaveWarning");
-        input.value = currentScoreName || "";
-        input.focus();
-        input.select();
-        input.addEventListener("input", () => {
-          const all = loadAllScores();
-          warning.style.display = all[input.value.trim()] ? "block" : "none";
-        });
-        input.dispatchEvent(new Event("input"));
-        input.addEventListener("keydown", (ev) => {
-          if (ev.key === "Enter") {
-            ev.preventDefault();
-            doSaveScore(input.value);
-          }
-          if (ev.key === "Escape") closeModal();
-        });
-        overlay.querySelector("#cancelSave").addEventListener("click", closeModal);
-        overlay
-          .querySelector("#confirmSave")
-          .addEventListener("click", () => doSaveScore(input.value));
-      });
-
-      function renderScoreList(overlay) {
-        const listEl = overlay.querySelector("#scoreListEl");
-        const all = loadAllScores();
-        const names = Object.keys(all).sort((a, b) =>
-          (all[b].savedAt || 0) - (all[a].savedAt || 0)
-        );
-        if (names.length === 0) {
-          listEl.innerHTML = `<div class="empty-list">Nenhuma partitura salva ainda.</div>`;
-          return;
-        }
-        listEl.innerHTML = "";
-        names.forEach((name) => {
-          const item = all[name];
-          const dateStr = item.savedAt
-            ? new Date(item.savedAt).toLocaleString("pt-BR")
-            : "";
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <div class="score-info">
-              <span class="score-name"></span>
-              <span class="score-date"></span>
-            </div>
-            <div class="score-actions">
-              <button type="button" class="load-score">Abrir</button>
-              <button type="button" class="del-score">Excluir</button>
-            </div>
-          `;
-          li.querySelector(".score-name").textContent = name;
-          li.querySelector(".score-date").textContent = dateStr;
-          li.querySelector(".load-score").addEventListener("click", () => {
-            applyScoreData(item);
-            closeModal();
-          });
-          li.querySelector(".del-score").addEventListener("click", () => {
-            const allNow = loadAllScores();
-            delete allNow[name];
-            saveAllScores(allNow);
-            if (currentScoreName === name) {
-              currentScoreName = null;
-              updateScoreNameBar();
-            }
-            renderScoreList(overlay);
-          });
-          listEl.appendChild(li);
-        });
-      }
-
-      document.getElementById("listScoresBtn").addEventListener("click", () => {
-        const overlay = openModal(`
-          <h3>📂 Partituras Salvas</h3>
-          <ul class="score-list" id="scoreListEl"></ul>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" id="closeList">Fechar</button>
-          </div>
-        `);
-        renderScoreList(overlay);
-        overlay.querySelector("#closeList").addEventListener("click", closeModal);
-      });
-
-      document.getElementById("newScoreBtn").addEventListener("click", () => {
-        const hasContent = sequence.length > 0 || chordLabels.length > 0;
-        if (!hasContent) {
-          applyScoreData({ name: null, sequence: [], chords: [] });
-          return;
-        }
-        const overlay = openModal(`
-          <h3>🆕 Nova Partitura</h3>
-          <p style="margin-bottom:14px;color:#444;">
-            Isso vai limpar a partitura atual da tela. Se ainda não salvou, as
-            alterações serão perdidas. Deseja continuar?
-          </p>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" id="cancelNew">Cancelar</button>
-            <button type="button" id="confirmNew">Criar Nova</button>
-          </div>
-        `);
-        overlay.querySelector("#cancelNew").addEventListener("click", closeModal);
-        overlay.querySelector("#confirmNew").addEventListener("click", () => {
-          applyScoreData({ name: null, sequence: [], chords: [] });
-          closeModal();
-        });
-      });
-
-      updateScoreNameBar();
     </script>
   </body>
 </html>
